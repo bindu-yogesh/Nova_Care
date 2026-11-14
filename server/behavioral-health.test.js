@@ -1,5 +1,5 @@
 
-import test from 'node:test';
+import test, { beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import express from 'express';
 import { createServer } from 'node:http';
@@ -15,6 +15,10 @@ const MOOD_SCORES = {
   'Very Low': 1
 };
 
+beforeEach(() => {
+  records.length = 0;
+});
+
 const q = async (sql, params = []) => {
   if (sql.includes('SELECT id FROM astronauts')) {
     return params[0] === 'astro-1' && params[1] === 'user-1'
@@ -25,10 +29,12 @@ const q = async (sql, params = []) => {
   if (sql.includes('INSERT INTO behavioral_health_checkins')) {
     const record = {
       id: `record-${records.length + 1}`,
-      mood: params[1],
-      stress_level: params[2],
-      journal_entry: params[3],
-      sentiment: params[4],
+      user_id: params[0],
+      astronaut_id: params[1],
+      mood: params[2],
+      stress_level: params[3],
+      journal_entry: params[4],
+      sentiment: params[5],
       created_at: new Date().toISOString()
     };
 
@@ -37,12 +43,14 @@ const q = async (sql, params = []) => {
   }
 
   if (sql.includes('FROM behavioral_health_checkins')) {
+    const userRecords = records.filter(
+      record => record.user_id === params[0]
+    );
 
-    // Weekly/monthly trend query.
     if (sql.includes('GROUP BY DATE')) {
       const grouped = {};
 
-      for (const record of records) {
+      for (const record of userRecords) {
         const date = record.created_at.slice(0, 10);
         const score = MOOD_SCORES[record.mood];
 
@@ -63,14 +71,13 @@ const q = async (sql, params = []) => {
       }));
     }
 
-    // Statistics summary query.
     if (sql.includes('COUNT(*)')) {
-      const scores = records.map(
+      const scores = userRecords.map(
         record => MOOD_SCORES[record.mood]
       );
 
       return [{
-        total_checkins: records.length,
+        total_checkins: scores.length,
         average_mood_score: scores.length
           ? Number(
               (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2)
@@ -79,14 +86,29 @@ const q = async (sql, params = []) => {
       }];
     }
 
-    // History query.
     if (sql.includes('LIMIT $2')) {
-      return records.slice(-params[1]).reverse();
+      return userRecords
+        .slice(-params[1])
+        .reverse()
+        .map(({
+          id,
+          mood,
+          stress_level,
+          journal_entry,
+          sentiment,
+          created_at
+        }) => ({
+          id,
+          mood,
+          stress_level,
+          journal_entry,
+          sentiment,
+          created_at
+        }));
     }
 
-    // Repeated low-mood alert query.
     if (sql.includes('LIMIT 3')) {
-      return records.slice(-3).reverse();
+      return userRecords.slice(-3).reverse();
     }
   }
 
@@ -128,7 +150,7 @@ async function setup(authMiddleware = auth()) {
   };
 }
 
-// TEST 1: Valid check-in.
+// TEST 1: Valid astronaut check-in.
 test('valid check-in is stored with sentiment', async () => {
   const api = await setup();
 
@@ -157,7 +179,43 @@ test('valid check-in is stored with sentiment', async () => {
   }
 });
 
-// TEST 2: Invalid mood.
+// TEST 2: Flight Surgeon can submit without an astronaut profile.
+test('Flight Surgeon can submit a check-in without an astronaut profile', async () => {
+  const medicalAuth = (req, res, next) => {
+    req.user = {
+      uid: 'medical-user-1',
+      aid: null,
+      role: 'medical'
+    };
+    next();
+  };
+
+  const api = await setup(medicalAuth);
+
+  try {
+    const response = await fetch(
+      `${api.base}/api/behavioral-health/checkins`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mood: 'Good',
+          stressLevel: 3,
+          journalEntry: 'I feel calm and positive today.'
+        })
+      }
+    );
+
+    assert.equal(response.status, 201);
+
+    const data = await response.json();
+    assert.equal(data.checkin.mood, 'Good');
+  } finally {
+    await api.close();
+  }
+});
+
+// TEST 3: Invalid mood.
 test('invalid mood is rejected', async () => {
   const api = await setup();
 
@@ -177,7 +235,7 @@ test('invalid mood is rejected', async () => {
   }
 });
 
-// TEST 3: Invalid stress.
+// TEST 4: Invalid stress.
 test('invalid stress level is rejected', async () => {
   const api = await setup();
 
@@ -200,7 +258,7 @@ test('invalid stress level is rejected', async () => {
   }
 });
 
-// TEST 4: Oversized journal.
+// TEST 5: Oversized journal.
 test('oversized journal is rejected', async () => {
   const api = await setup();
 
@@ -223,8 +281,8 @@ test('oversized journal is rejected', async () => {
   }
 });
 
-// TEST 5: History endpoint.
-test('history returns records', async () => {
+// TEST 6: History endpoint.
+test('history returns only the authenticated user records', async () => {
   const api = await setup();
 
   try {
@@ -236,12 +294,16 @@ test('history returns records', async () => {
 
     const data = await response.json();
     assert.ok(Array.isArray(data.records));
+
+    assert.ok(
+      data.records.every(record => !('user_id' in record))
+    );
   } finally {
     await api.close();
   }
 });
 
-// TEST 6: Invalid statistics period.
+// TEST 7: Invalid statistics period.
 test('invalid statistics period is rejected', async () => {
   const api = await setup();
 
@@ -256,7 +318,7 @@ test('invalid statistics period is rejected', async () => {
   }
 });
 
-// TEST 7: Alerts endpoint.
+// TEST 8: Alerts endpoint.
 test('alerts endpoint returns an array', async () => {
   const api = await setup();
 
@@ -274,7 +336,7 @@ test('alerts endpoint returns an array', async () => {
   }
 });
 
-// TEST 8: Unauthenticated request.
+// TEST 9: Unauthenticated request.
 test('unauthenticated request is rejected', async () => {
   const api = await setup((req, res) => {
     res.status(401).json({
@@ -293,7 +355,31 @@ test('unauthenticated request is rejected', async () => {
   }
 });
 
-// TEST 9: Cross-astronaut access.
+// TEST 10: Unsupported role.
+test('unsupported role cannot access behavioral health', async () => {
+  const otherRoleAuth = (req, res, next) => {
+    req.user = {
+      uid: 'other-user',
+      aid: null,
+      role: 'admin'
+    };
+    next();
+  };
+
+  const api = await setup(otherRoleAuth);
+
+  try {
+    const response = await fetch(
+      `${api.base}/api/behavioral-health/history`
+    );
+
+    assert.equal(response.status, 403);
+  } finally {
+    await api.close();
+  }
+});
+
+// TEST 11: Another astronaut cannot access records.
 test('another astronaut cannot access behavioral records', async () => {
   const api = await setup((req, res, next) => {
     req.user = {
@@ -315,7 +401,7 @@ test('another astronaut cannot access behavioral records', async () => {
   }
 });
 
-// TEST 10: Three consecutive low moods.
+// TEST 12: Three consecutive low moods.
 test('three consecutive low moods trigger a wellness alert', async () => {
   const api = await setup();
 
@@ -350,7 +436,7 @@ test('three consecutive low moods trigger a wellness alert', async () => {
   }
 });
 
-// TEST 11: Weekly statistics.
+// TEST 13: Weekly statistics.
 test('weekly statistics return mood averages and trends', async () => {
   const api = await setup();
 
@@ -369,5 +455,101 @@ test('weekly statistics return mood averages and trends', async () => {
     assert.ok(Number.isInteger(data.summary.total_checkins));
   } finally {
     await api.close();
+  }
+});
+
+// TEST 14: Flight Surgeon cannot see astronaut records.
+test('Flight Surgeon cannot see astronaut check-ins', async () => {
+  const astronautApi = await setup();
+
+  const medicalAuth = (req, res, next) => {
+    req.user = {
+      uid: 'medical-user-1',
+      aid: null,
+      role: 'medical'
+    };
+    next();
+  };
+
+  const medicalApi = await setup(medicalAuth);
+
+  try {
+    const submitResponse = await fetch(
+      `${astronautApi.base}/api/behavioral-health/checkins`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mood: 'Good',
+          journalEntry: 'Astronaut private check-in.'
+        })
+      }
+    );
+
+    assert.equal(submitResponse.status, 201);
+
+    const historyResponse = await fetch(
+      `${medicalApi.base}/api/behavioral-health/history`
+    );
+
+    assert.equal(historyResponse.status, 200);
+
+    const data = await historyResponse.json();
+    assert.equal(data.records.length, 0);
+  } finally {
+    await astronautApi.close();
+    await medicalApi.close();
+  }
+});
+
+// TEST 15: Medical accounts cannot access each other's records.
+test('medical accounts cannot access each other records', async () => {
+  const medicalAuth1 = (req, res, next) => {
+    req.user = {
+      uid: 'medical-user-1',
+      aid: null,
+      role: 'medical'
+    };
+    next();
+  };
+
+  const medicalAuth2 = (req, res, next) => {
+    req.user = {
+      uid: 'medical-user-2',
+      aid: null,
+      role: 'medical'
+    };
+    next();
+  };
+
+  const api1 = await setup(medicalAuth1);
+  const api2 = await setup(medicalAuth2);
+
+  try {
+    const submitResponse = await fetch(
+      `${api1.base}/api/behavioral-health/checkins`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mood: 'Good',
+          journalEntry: 'Private medical account check-in.'
+        })
+      }
+    );
+
+    assert.equal(submitResponse.status, 201);
+
+    const historyResponse = await fetch(
+      `${api2.base}/api/behavioral-health/history`
+    );
+
+    assert.equal(historyResponse.status, 200);
+
+    const data = await historyResponse.json();
+    assert.equal(data.records.length, 0);
+  } finally {
+    await api1.close();
+    await api2.close();
   }
 });
