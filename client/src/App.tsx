@@ -454,7 +454,7 @@ export default function App() {
           )}
 
           {currentTab === 'behavioral-health' && (
-            <BehavioralHealthView />
+            <BehavioralHealthView key={token} />
           )}
 
           {currentTab === 'gravity-mind' && (
