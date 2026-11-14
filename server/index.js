@@ -177,7 +177,16 @@ app.get('/api/crew/:id', auth(), wrap(async (req, res) => {
   const latestVitals = (await q('SELECT * FROM health_metrics WHERE astronaut_id=$1 ORDER BY recorded_at DESC LIMIT 1', [aid]))[0] || null;
   const recentHistory = await q('SELECT * FROM health_metrics WHERE astronaut_id=$1 ORDER BY recorded_at DESC LIMIT 30', [aid]);
   const openAlerts = await q("SELECT * FROM health_alerts WHERE astronaut_id=$1 AND status='open' ORDER BY created_at DESC", [aid]);
-  const recentExercise = await q('SELECT * FROM exercise_records WHERE astronaut_id=$1 ORDER BY recorded_at DESC LIMIT 10', [aid]);
+  const recentExercise = await q(`
+    SELECT
+      e.*,
+      a.display_name AS astronaut_name,
+      a.callsign AS astronaut_callsign
+    FROM exercise_records e
+    JOIN astronauts a ON a.id = e.astronaut_id
+    ORDER BY e.recorded_at DESC
+    LIMIT 50
+  `);
   const recentMental = await q('SELECT * FROM mental_health_records WHERE astronaut_id=$1 ORDER BY recorded_at DESC LIMIT 10', [aid]);
   const latestRisk = (await q('SELECT * FROM anomaly_records WHERE astronaut_id=$1 ORDER BY detected_at DESC LIMIT 1', [aid]))[0] || null;
 
