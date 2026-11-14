@@ -697,11 +697,13 @@ app.post('/api/exercise', auth(), wrap(async (req, res) => {
 }));
 
 app.post('/api/environment', auth(), wrap(async (req, res) => {
+  const aid = req.body.astronautId || req.user.aid;
+  if (!aid) return res.status(400).json({ error: 'Astronaut ID is required' });
   const { radiation_usv_h, cumulative_dose_msv, cabin_temp_c, humidity_pct, co2_ppm, cabin_pressure_kpa, oxygen_pct, instrument } = req.body;
   const [row] = await q(
-    `INSERT INTO environmental_readings(radiation_usv_h, cumulative_dose_msv, cabin_temp_c, humidity_pct, co2_ppm, cabin_pressure_kpa, oxygen_pct, instrument, source)
-     VALUES($1, $2, $3, $4, $5, $6, $7, $8, 'manual') RETURNING *`,
-    [radiation_usv_h, cumulative_dose_msv, cabin_temp_c, humidity_pct, co2_ppm, cabin_pressure_kpa || 101.3, oxygen_pct || 20.9, instrument || 'Flight Surgeon Manual Log']
+    `INSERT INTO environmental_readings(astronaut_id, radiation_usv_h, cumulative_dose_msv, cabin_temp_c, humidity_pct, co2_ppm, cabin_pressure_kpa, oxygen_pct, instrument, source)
+     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, 'manual') RETURNING *`,
+    [aid, radiation_usv_h, cumulative_dose_msv, cabin_temp_c, humidity_pct, co2_ppm, cabin_pressure_kpa || 101.3, oxygen_pct || 20.9, instrument || 'Flight Surgeon Manual Log']
   );
   res.json(row);
 }));

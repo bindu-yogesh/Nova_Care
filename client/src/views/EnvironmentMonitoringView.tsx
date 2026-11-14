@@ -16,10 +16,12 @@ import { request } from '../api';
 
 interface EnvironmentMonitoringViewProps {
   currentEnv: EnvironmentalReading | null;
+  astronautId: string;
 }
 
 export const EnvironmentMonitoringView: React.FC<EnvironmentMonitoringViewProps> = ({
-  currentEnv
+  currentEnv,
+  astronautId
 }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [showLogModal, setShowLogModal] = useState(false);
@@ -49,7 +51,7 @@ export const EnvironmentMonitoringView: React.FC<EnvironmentMonitoringViewProps>
     try {
       await request('/api/environment', {
         method: 'POST',
-        body: logForm
+        body: { ...logForm, astronautId }
       });
       setShowLogModal(false);
       // Reload history
