@@ -243,6 +243,7 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
           <table>
             <thead>
               <tr>
+                <th>Astronaut</th>
                 <th>Date / Time</th>
                 <th>Countermeasure Device</th>
                 <th>Duration</th>
@@ -252,10 +253,11 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
             </thead>
             <tbody>
               {exercise.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No recent exercise records logged</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No recent exercise records logged</td></tr>
               ) : (
                 exercise.map((ex: any) => (
                   <tr key={ex.id}>
+                    <td style={{ fontWeight: 600, color: '#fff' }}>{ex.astronaut_callsign || ex.astronaut_name || 'Unknown'}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
                       {new Date(ex.recorded_at).toLocaleDateString()}
                     </td>
