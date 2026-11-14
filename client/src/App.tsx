@@ -370,6 +370,8 @@ export default function App() {
             <AnomalyDetectionView
               crew={crew}
               selectedAstronautId={selectedAstronautId}
+              authenticatedAstronautId={currentAstronaut?.id || ''}
+              userRole={userRole}
               onSelectAstronaut={setSelectedAstronautId}
             />
           )}

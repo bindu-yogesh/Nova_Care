@@ -14,12 +14,16 @@ import { request } from '../api';
 interface AnomalyDetectionViewProps {
   crew: Astronaut[];
   selectedAstronautId: string;
+  authenticatedAstronautId: string;
+  userRole: string;
   onSelectAstronaut: (id: string) => void;
 }
 
 export const AnomalyDetectionView: React.FC<AnomalyDetectionViewProps> = ({
   crew,
   selectedAstronautId,
+  authenticatedAstronautId,
+  userRole,
   onSelectAstronaut
 }) => {
   const [twinData, setTwinData] = useState<any>(null);
@@ -47,10 +51,15 @@ export const AnomalyDetectionView: React.FC<AnomalyDetectionViewProps> = ({
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
 
-    request(`/api/ai/ml-analysis?astronautId=${activeAstro.id}`)
+    const mlAstronautId = userRole === 'astronaut' ? authenticatedAstronautId : activeAstro.id;
+    if (!mlAstronautId) {
+      setMlError('Authenticated astronaut ID is unavailable');
+      return;
+    }
+    request(`/api/ai/ml-analysis?astronautId=${mlAstronautId}`)
       .then(result => setMlAnalysis(result))
       .catch(err => setMlError(err.message || 'Experimental ML analysis unavailable'));
-  }, [activeAstro?.id]);
+  }, [activeAstro?.id, authenticatedAstronautId, userRole]);
 
   const metrics = twinData?.metrics || [];
 
