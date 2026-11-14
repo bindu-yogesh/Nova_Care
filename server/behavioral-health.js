@@ -3,15 +3,6 @@ import express from 'express';
 import { analyzeSentiment } from './behavioral-sentiment.js';
 
 const MOODS = ['Very Good', 'Good', 'Neutral', 'Low', 'Very Low'];
-
-const MOOD_SCORES = {
-  'Very Good': 5,
-  'Good': 4,
-  'Neutral': 3,
-  'Low': 2,
-  'Very Low': 1
-};
-
 const LOW_MOODS = new Set(['Low', 'Very Low']);
 
 const wrap = handler => (req, res, next) =>
@@ -20,39 +11,62 @@ const wrap = handler => (req, res, next) =>
 export function createBehavioralHealthRouter({ auth, q }) {
   const router = express.Router();
 
-  // Verify that the authenticated user owns an astronaut profile.
-  const requireOwnAstronaut = async (req, res, next) => {
+  // Allow astronauts and flight surgeons.
+  // Each account can access only its own records.
+  const requireBehavioralHealthAccess = async (req, res, next) => {
     try {
-      const aid = req.user?.aid;
       const uid = req.user?.uid;
+      const role = req.user?.role;
 
-      if (!aid || !uid) {
-        return res.status(403).json({
-          error: 'An astronaut account is required.'
+      if (!uid) {
+        return res.status(401).json({
+          error: 'Authenticated user information is missing.'
         });
       }
 
-      const [astronaut] = await q(
-        'SELECT id FROM astronauts WHERE id=$1 AND user_id=$2',
-        [aid, uid]
-      );
-
-      if (!astronaut) {
+      if (!['astronaut', 'medical'].includes(role)) {
         return res.status(403).json({
-          error: 'Access to this astronaut profile is not permitted.'
+          error: 'Behavioral health access is restricted to astronauts and flight surgeons.'
         });
       }
 
-      req.behavioralAstronautId = astronaut.id;
+      req.behavioralUserId = uid;
+      req.behavioralAstronautId = null;
+
+      // Verify ownership of the astronaut profile.
+      // Flight Surgeons do not need an astronaut profile.
+      if (role === 'astronaut') {
+        const aid = req.user?.aid;
+
+        if (!aid) {
+          return res.status(403).json({
+            error: 'An astronaut profile is required.'
+          });
+        }
+
+        const [astronaut] = await q(
+          'SELECT id FROM astronauts WHERE id=$1 AND user_id=$2',
+          [aid, uid]
+        );
+
+        if (!astronaut) {
+          return res.status(403).json({
+            error: 'Access to this astronaut profile is not permitted.'
+          });
+        }
+
+        req.behavioralAstronautId = astronaut.id;
+      }
+
       next();
     } catch (error) {
       next(error);
     }
   };
 
-  router.use(auth(), requireOwnAstronaut);
+  router.use(auth(), requireBehavioralHealthAccess);
 
-  // 1. Submit a behavioral health check-in.
+  // 1. Submit a check-in.
   router.post('/checkins', wrap(async (req, res) => {
     const { mood, stressLevel, journalEntry = '' } = req.body || {};
 
@@ -83,20 +97,22 @@ export function createBehavioralHealthRouter({ auth, q }) {
       });
     }
 
-    const analysis = analyzeSentiment(journalEntry);
+    const trimmedJournal = journalEntry.trim();
+    const analysis = analyzeSentiment(trimmedJournal);
 
     const [record] = await q(
       `INSERT INTO behavioral_health_checkins
-        (astronaut_id, mood, stress_level, journal_entry, sentiment)
-       VALUES ($1, $2, $3, $4, $5)
+        (user_id, astronaut_id, mood, stress_level, journal_entry, sentiment)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, mood, stress_level, journal_entry,
                  sentiment, created_at`,
       [
+        req.behavioralUserId,
         req.behavioralAstronautId,
         mood,
         stressLevel ?? null,
-        journalEntry.trim(),
-        journalEntry.trim() ? analysis.sentiment : null
+        trimmedJournal,
+        trimmedJournal ? analysis.sentiment : null
       ]
     );
 
@@ -106,7 +122,7 @@ export function createBehavioralHealthRouter({ auth, q }) {
     });
   }));
 
-  // 2. Retrieve the authenticated astronaut's own history.
+  // 2. Retrieve only this account's history.
   router.get('/history', wrap(async (req, res) => {
     const requestedLimit = Number(req.query.limit ?? 30);
     const limit = Number.isInteger(requestedLimit)
@@ -117,16 +133,16 @@ export function createBehavioralHealthRouter({ auth, q }) {
       `SELECT id, mood, stress_level, journal_entry,
               sentiment, created_at
        FROM behavioral_health_checkins
-       WHERE astronaut_id = $1
+       WHERE user_id = $1
        ORDER BY created_at DESC
        LIMIT $2`,
-      [req.behavioralAstronautId, limit]
+      [req.behavioralUserId, limit]
     );
 
     res.json({ records });
   }));
 
-  // 3. Weekly or monthly mood statistics.
+  // 3. Weekly or monthly statistics.
   router.get('/stats', wrap(async (req, res) => {
     const period = req.query.period || 'week';
 
@@ -152,11 +168,11 @@ export function createBehavioralHealthRouter({ auth, q }) {
            END
          ), 2) AS average_mood_score
        FROM behavioral_health_checkins
-       WHERE astronaut_id = $1
+       WHERE user_id = $1
          AND created_at >= NOW() - ($2 * INTERVAL '1 day')
        GROUP BY DATE(created_at)
        ORDER BY DATE(created_at) ASC`,
-      [req.behavioralAstronautId, days]
+      [req.behavioralUserId, days]
     );
 
     const [summary] = await q(
@@ -172,9 +188,9 @@ export function createBehavioralHealthRouter({ auth, q }) {
            END
          ), 2) AS average_mood_score
        FROM behavioral_health_checkins
-       WHERE astronaut_id = $1
+       WHERE user_id = $1
          AND created_at >= NOW() - ($2 * INTERVAL '1 day')`,
-      [req.behavioralAstronautId, days]
+      [req.behavioralUserId, days]
     );
 
     res.json({
@@ -190,10 +206,10 @@ export function createBehavioralHealthRouter({ auth, q }) {
     const recent = await q(
       `SELECT mood, created_at
        FROM behavioral_health_checkins
-       WHERE astronaut_id = $1
+       WHERE user_id = $1
        ORDER BY created_at DESC
        LIMIT 3`,
-      [req.behavioralAstronautId]
+      [req.behavioralUserId]
     );
 
     const repeatedLowMood =
