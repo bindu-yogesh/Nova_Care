@@ -398,6 +398,7 @@ export default function App() {
           {currentTab === 'environment' && (
             <EnvironmentMonitoringView
               currentEnv={environment}
+              astronautId={selectedAstronautId}
             />
           )}
 
