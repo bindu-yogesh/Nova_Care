@@ -17,7 +17,6 @@ export const SimulationControlBar: React.FC<SimulationControlBarProps> = ({
   selectedAstronautId
 }) => {
   const [loading, setLoading] = useState(false);
-  const [targetAstronaut, setTargetAstronaut] = useState<string>(selectedAstronautId || '');
 
   const isRunning = status?.isRunning ?? true;
   const activeScenario = status?.activeScenario;
@@ -37,7 +36,7 @@ export const SimulationControlBar: React.FC<SimulationControlBarProps> = ({
   const injectScenario = async (scenario: string) => {
     try {
       setLoading(true);
-      const target = targetAstronaut || crew[0]?.id;
+      const target = selectedAstronautId || crew[0]?.id;
       await request('/api/simulator/inject', {
         method: 'POST',
         body: { scenario, astronautId: target }
@@ -93,19 +92,6 @@ export const SimulationControlBar: React.FC<SimulationControlBarProps> = ({
           Inject Anomaly:
         </span>
 
-        {crew.length > 1 && (
-          <select
-            style={{ width: 'auto', padding: '3px 8px', fontSize: '11px' }}
-            value={targetAstronaut || crew[0]?.id}
-            onChange={e => setTargetAstronaut(e.target.value)}
-          >
-            {crew.map(a => (
-              <option key={a.id} value={a.id}>
-                {a.callsign || a.display_name}
-              </option>
-            ))}
-          </select>
-        )}
 
         <div className="scenario-pills">
           <button
