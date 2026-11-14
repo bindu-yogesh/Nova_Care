@@ -6,8 +6,9 @@ export async function request<T = any>(endpoint: string, options: {
   method?: string;
   body?: any;
   params?: Record<string, string | number | undefined>;
+  cache?: boolean;
 } = {}): Promise<T> {
-  const { method = 'GET', body, params } = options;
+  const { method = 'GET', body, params, cache = true } = options;
 
   let url = API_URL + endpoint;
   if (params) {
@@ -45,7 +46,7 @@ export async function request<T = any>(endpoint: string, options: {
       throw err;
     }
 
-    if (isGet) {
+    if (isGet && cache) {
       try {
         localStorage.setItem('cache_' + endpoint, JSON.stringify({ t: Date.now(), d: data }));
       } catch (e) {
@@ -56,7 +57,7 @@ export async function request<T = any>(endpoint: string, options: {
     return data;
   } catch (err: any) {
     // If offline or network failed on GET, try reading cache
-    if (isGet && !err.status) {
+    if (isGet && cache && !err.status) {
       const cached = localStorage.getItem('cache_' + endpoint);
       if (cached) {
         try {

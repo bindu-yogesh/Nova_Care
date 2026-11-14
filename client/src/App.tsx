@@ -217,8 +217,7 @@ export default function App() {
     setToken(authData.token);
     setUserRole(authData.role);
     setCurrentAstronaut(authData.astronaut ?? null);
-    setSelectedAstronautId(authData.astronaut?.id ?? null);
-    loadInitialData();
+    setSelectedAstronautId(authData.astronaut?.id ?? '');
   };
 
   const handleLogout = () => {
@@ -445,6 +444,8 @@ export default function App() {
           {currentTab === 'checkin' && (
             <CheckinView
               currentAstronaut={currentAstronaut}
+              userRole={userRole}
+              selectedAstronautId={selectedAstronautId}
               isOnline={isOnline}
               onCheckinSuccess={(analysis) => {
                 setLatestRiskAssessment(analysis);

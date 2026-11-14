@@ -474,6 +474,31 @@ async function saveCheckin(aid, idempotencyKey, p) {
   };
 }
 
+app.get('/api/health/checkin/latest', auth(), wrap(async (req, res) => {
+  let aid;
+
+  if (req.user.role === 'medical') {
+    aid = req.query.astronautId || req.user.aid;
+    if (!aid) return res.status(400).json({ error: 'Select an astronaut first' });
+
+    const [astronaut] = await q('SELECT id FROM astronauts WHERE id = $1', [aid]);
+    if (!astronaut) return res.status(404).json({ error: 'Astronaut not found' });
+  } else {
+    aid = req.user.aid;
+    if (!aid) return res.status(400).json({ error: 'Astronaut profile required' });
+  }
+
+  const [vitals] = await q(
+    'SELECT * FROM health_metrics WHERE astronaut_id = $1 ORDER BY recorded_at DESC LIMIT 1',
+    [aid]
+  );
+  const [mental] = await q(
+    'SELECT * FROM mental_health_records WHERE astronaut_id = $1 ORDER BY recorded_at DESC LIMIT 1',
+    [aid]
+  );
+
+  res.json({ vitals: vitals || null, mental: mental || null });
+}));
 app.post('/api/health/checkin', auth(), wrap(async (req, res) => {
   const requestedAid = req.body.astronautId;
   if (req.user.role === 'astronaut' && requestedAid && requestedAid !== req.user.aid) {
@@ -489,20 +514,12 @@ app.post('/api/health/checkin', auth(), wrap(async (req, res) => {
 }));
 
 app.post('/api/sync/upload', auth(), wrap(async (req, res) => {
-  const requestedAid = req.body.astronautId;
-  if (req.user.role === 'astronaut' && requestedAid && requestedAid !== req.user.aid) {
-    return res.status(403).json({ error: 'Astronaut accounts can only sync their own records' });
-  }
-  const aid = req.user.role === 'medical'
-    ? (requestedAid || req.user.aid)
-    : req.user.aid;
-  if (!aid) return res.status(400).json({ error: 'Astronaut ID required' });
-
   if (!Array.isArray(req.body.records)) {
     return res.status(400).json({ error: 'Records must be provided as an array' });
   }
 
   const results = [];
+
   for (const r of req.body.records.slice(0, 200)) {
     const key = r?.key;
 
@@ -516,7 +533,33 @@ app.post('/api/sync/upload', auth(), wrap(async (req, res) => {
       continue;
     }
 
+    const requestedAid = r.payload.astronautId;
+    let aid;
+
+    if (req.user.role === 'medical') {
+      aid = requestedAid || req.user.aid;
+    } else {
+      if (requestedAid && requestedAid !== req.user.aid) {
+        results.push({ key, status: 'rejected', error: 'You can only sync records for your own astronaut profile' });
+        continue;
+      }
+      aid = req.user.aid;
+    }
+
+    if (!aid) {
+      results.push({ key, status: 'rejected', error: 'Astronaut ID required' });
+      continue;
+    }
+
     try {
+      if (req.user.role === 'medical') {
+        const [astronaut] = await q('SELECT id FROM astronauts WHERE id = $1', [aid]);
+        if (!astronaut) {
+          results.push({ key, status: 'rejected', error: 'Astronaut not found' });
+          continue;
+        }
+      }
+
       results.push({ key, ...(await saveCheckin(aid, key, r.payload)) });
     } catch (err) {
       results.push({ key, status: 'failed', error: err.message });

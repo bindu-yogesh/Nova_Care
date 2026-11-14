@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ClipboardPenLine,
   Send,
@@ -11,18 +11,22 @@ import {
   Brain
 } from 'lucide-react';
 import { enqueue } from '../offline';
-import { flushOfflineQueue } from '../api';
+import { flushOfflineQueue, request } from '../api';
 import { Astronaut } from '../types';
 
 interface CheckinViewProps {
   currentAstronaut: Astronaut | null;
   isOnline: boolean;
+  userRole: string;
+  selectedAstronautId: string;
   onCheckinSuccess: (analysis: any) => void;
 }
 
 export const CheckinView: React.FC<CheckinViewProps> = ({
   currentAstronaut,
   isOnline,
+  userRole,
+  selectedAstronautId,
   onCheckinSuccess
 }) => {
   const [form, setForm] = useState({
@@ -42,9 +46,75 @@ export const CheckinView: React.FC<CheckinViewProps> = ({
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [loadingReadings, setLoadingReadings] = useState(false);
+  const [readingsNotice, setReadingsNotice] = useState('');
+  const targetAstronautId = userRole === 'medical' ? selectedAstronautId : (currentAstronaut?.id || '');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [lastAnalysis, setLastAnalysis] = useState<any>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const defaults = {
+      heartRate: 68, hrv: 58, spo2: 98.5, respiratoryRate: 14,
+      systolicBP: 118, diastolicBP: 76, temperature: 36.8,
+      sleepHours: 7.2, activityLevel: 65, moodScore: 8,
+      stressScore: 3, fatigueScore: 2, symptoms: ''
+    };
+
+    setForm(defaults);
+    setStatusMessage(null);
+    setLastAnalysis(null);
+    setReadingsNotice('');
+
+    if (!targetAstronautId) return;
+    if (!isOnline) {
+      setReadingsNotice('Offline — showing default values. Latest saved readings will load when online.');
+      return;
+    }
+
+    setLoadingReadings(true);
+    request('/api/health/checkin/latest', {
+      params: { astronautId: targetAstronautId },
+      cache: false
+    }).then((data: any) => {
+      if (cancelled) return;
+
+      const v = data?.vitals || {};
+      const m = data?.mental || {};
+      const hasData = data?.vitals || data?.mental;
+
+      if (hasData) {
+        setForm({
+          heartRate: v.heart_rate ?? defaults.heartRate,
+          hrv: v.hrv ?? defaults.hrv,
+          spo2: v.spo2 ?? defaults.spo2,
+          respiratoryRate: v.respiratory_rate ?? defaults.respiratoryRate,
+          systolicBP: v.systolic_bp ?? defaults.systolicBP,
+          diastolicBP: v.diastolic_bp ?? defaults.diastolicBP,
+          temperature: v.body_temperature ?? defaults.temperature,
+          sleepHours: v.sleep_hours ?? defaults.sleepHours,
+          activityLevel: v.activity_level ?? defaults.activityLevel,
+          moodScore: m.mood ?? defaults.moodScore,
+          stressScore: m.stress ?? defaults.stressScore,
+          fatigueScore: m.fatigue ?? defaults.fatigueScore,
+          symptoms: m.notes ?? defaults.symptoms
+        });
+        const latestDate = [v.recorded_at, m.recorded_at].filter(Boolean).sort().pop();
+        setReadingsNotice(latestDate
+          ? `Showing latest saved readings: ${new Date(latestDate).toLocaleString()}`
+          : 'Showing latest saved readings.');
+      } else {
+        setReadingsNotice('No saved readings found. Enter today’s values.');
+      }
+    }).catch(() => {
+      if (!cancelled) setReadingsNotice('Could not load saved readings. You can enter values manually.');
+    }).finally(() => {
+      if (!cancelled) setLoadingReadings(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [targetAstronautId, userRole, isOnline]);
   const localRuleCheck = (data: typeof form) => {
     const flags = [];
     if (data.sleepHours < 5) flags.push('Low Sleep Duration (<5h)');
@@ -63,7 +133,7 @@ export const CheckinView: React.FC<CheckinViewProps> = ({
     const idempotencyKey = crypto.randomUUID();
     const payload = {
       ...form,
-      astronautId: currentAstronaut?.id,
+      astronautId: targetAstronautId,
       recordedAt: new Date().toISOString(),
       source: 'astronaut_manual_checkin'
     };
@@ -126,6 +196,8 @@ export const CheckinView: React.FC<CheckinViewProps> = ({
           </span>
         </div>
       </div>
+
+      {(loadingReadings || readingsNotice) && (<div style={{ marginBottom: '14px', color: 'var(--cyan)', fontSize: '13px' }}>{loadingReadings ? 'Loading latest saved readings...' : readingsNotice}</div>)}
 
       {statusMessage && (
         <div
