@@ -147,7 +147,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Main Grid: Crew Status Grid & Live Telemetry Stream */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+      <div className="dashboard-main-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: '20px', marginBottom: '20px' }}>
 
         {/* Crew Status Grid */}
         <div className="glass-card">
@@ -170,6 +170,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               return (
                 <div
+                  className="crew-member-row"
                   key={member.id}
                   style={{
                     background: 'rgba(9, 15, 32, 0.7)',
@@ -213,7 +214,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </div>
 
                   {/* Vitals snapshot */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontFamily: 'var(--font-mono)' }}>
+                  <div className="crew-member-vitals" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontFamily: 'var(--font-mono)' }}>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '12px', color: hr > 100 ? 'var(--health-orange)' : '#fff', fontWeight: 600 }}>
                         {hr} <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>BPM</span>
@@ -274,7 +275,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Bottom Grid: Station Atmosphere & Recent Alerts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+      <div className="dashboard-bottom-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
 
         {/* Station Environmental Telemetry */}
         <div className="glass-card">
@@ -288,7 +289,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+          <div className="dashboard-environment-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
             <div style={{ background: 'rgba(9, 15, 32, 0.6)', padding: '12px', borderRadius: '6px' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cabin Temp</div>
               <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#fff' }}>

@@ -71,7 +71,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
 
   return (
     <div className="page-view">
-      <div className="page-header no-print">
+      <div className="page-header no-print reports-header">
         <div>
           <h1 className="page-title">
             <FileSpreadsheet color="var(--cyan)" size={24} />
@@ -82,7 +82,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="reports-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <select
             style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}
             value={activeAstro?.id}
@@ -107,7 +107,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
 
       {/* Official Clinical Report Document Card (Printable) */}
       <div
-        className="glass-card"
+        className="glass-card reports-document"
         style={{
           border: '1px solid var(--border-line)',
           padding: '30px',
@@ -119,7 +119,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
         {/* Document Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--border-line)', paddingBottom: '16px', marginBottom: '20px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="reports-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div className="nasa-logo-badge" style={{ fontSize: '14px', padding: '4px 10px' }}>NASA</div>
               <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', letterSpacing: '1px' }}>
                 EXPEDITION 03 FLIGHT MEDICINE CLINICAL SUMMARY
@@ -137,7 +137,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
         </div>
 
         {/* Astronaut Dossier Strip */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '6px', marginBottom: '24px', fontSize: '12px' }}>
+        <div className="reports-dossier-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '6px', marginBottom: '24px', fontSize: '12px' }}>
           <div>
             <div style={{ color: 'var(--text-muted)' }}>ASTRONAUT:</div>
             <strong style={{ color: '#fff' }}>{activeAstro?.display_name}</strong>
@@ -212,7 +212,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
           <h3 style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border-line)', paddingBottom: '6px', marginBottom: '10px' }}>
             2. Neurobehavioral & Psychophysiological Adaptation
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', fontSize: '12px' }}>
+          <div className="reports-wellness-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', fontSize: '12px' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
               <div style={{ color: 'var(--text-muted)' }}>Average Mood</div>
               <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>{m.avg_mood ?? '7.8'} / 10</div>

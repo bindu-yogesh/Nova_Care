@@ -783,3 +783,913 @@ tbody tr:hover {
 @media(max-width:1000px){.space-intel-page{padding:24px 22px}.iss-overview-card{grid-template-columns:1fr 175px;padding:25px}.iss-orbit-visual{left:58%;transform:translate(-50%,-50%) scale(.85)}.space-intel-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.space-intel-page{padding:20px 15px}.iss-overview-card{grid-template-columns:1fr;gap:20px;padding:22px}.iss-orbit-visual{position:relative;top:auto;left:auto;width:100%;height:175px;margin:auto;transform:none}.iss-overview-side{display:flex;align-items:center;justify-content:space-between;padding:15px 0 0;border-top:1px solid rgba(148,169,201,.2);border-left:0}.iss-side-divider{width:1px;height:38px;margin:0}.nasa-dataset-grid,.space-intel-info-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.space-intel-heading{align-items:flex-start;flex-direction:column}.space-intel-metric-grid{gap:9px}.space-intel-metric{padding:14px}.nasa-detail-grid{grid-template-columns:1fr}.nasa-detail-modal{padding:18px}.nasa-pagination{gap:9px}}
+
+/* =========================================
+   GLOBAL RESPONSIVE LAYOUT
+   ========================================= */
+
+.mobile-menu-toggle {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border-line);
+  border-radius: 7px;
+  background: var(--bg-card);
+  color: var(--cyan);
+  cursor: pointer;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+.app-container,
+.main-wrapper {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(280px, 85vw);
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+    z-index: 120;
+    box-shadow: 12px 0 35px rgba(0, 0, 0, 0.35);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(0, 0, 0, 0.68);
+    backdrop-filter: blur(3px);
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+
+  .flight-bar {
+    gap: 12px;
+    padding: 10px 14px;
+  }
+
+  .flight-telemetry-strip {
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .top-actions {
+    flex-shrink: 0;
+    gap: 6px;
+  }
+
+  .page-view {
+    padding: 18px;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .simulation-bar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 10px 14px;
+  }
+
+  .simulation-bar > div {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .flight-bar {
+    flex-wrap: wrap;
+  }
+
+  .flight-telemetry-strip {
+    gap: 8px;
+  }
+
+  .flight-telemetry-strip .telemetry-item:nth-child(2),
+  .flight-telemetry-strip .telemetry-item:nth-child(3) {
+    display: none !important;
+  }
+
+  .flight-telemetry-strip .live-indicator {
+    font-size: 10px;
+  }
+
+  .top-actions {
+    margin-left: auto;
+  }
+
+  .page-view {
+    padding: 14px;
+  }
+
+  .page-header {
+    gap: 12px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .glass-card {
+    padding: 14px;
+  }
+
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .simulation-bar {
+    gap: 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .page-view {
+    padding: 10px;
+  }
+
+  .flight-bar {
+    padding: 8px 10px;
+  }
+
+  .mobile-menu-toggle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+}
+
+/* Dashboard responsive layout */
+.dashboard-main-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-main-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-main-grid {
+    gap: 14px !important;
+  }
+}
+
+/* Dashboard crew cards */
+@media (max-width: 600px) {
+  .crew-member-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+    padding: 12px !important;
+  }
+
+  .crew-member-vitals {
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-line);
+  }
+
+  .dashboard-main-grid .card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dashboard-main-grid .card-title {
+    min-width: 0;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .crew-member-vitals {
+    gap: 10px !important;
+  }
+
+  .crew-member-row {
+    padding: 10px !important;
+  }
+}
+
+/* Dashboard bottom grid */
+.dashboard-bottom-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-bottom-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-bottom-grid {
+    gap: 14px !important;
+  }
+
+  .dashboard-bottom-grid .card-header {
+    align-items: flex-start;
+  }
+
+  .dashboard-bottom-grid .btn {
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 380px) {
+  .dashboard-environment-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Live Monitoring responsive layout */
+@media (max-width: 900px) {
+  .live-monitoring-header {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .live-monitoring-header > div:last-child {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .live-monitoring-header {
+    align-items: flex-start;
+  }
+
+  .live-monitoring-header .page-title {
+    font-size: 19px;
+  }
+
+  .live-monitoring-header > div:last-child {
+    width: 100%;
+  }
+
+  .live-monitoring-header > div:last-child .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .live-ecg-card .card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .live-ecg-status {
+    flex-wrap: wrap;
+  }
+
+  .live-ecg-metadata {
+    flex-direction: column;
+    gap: 6px;
+    overflow-wrap: anywhere;
+  }
+
+  .live-ecg-card .card-title {
+    font-size: 12px;
+  }
+
+  .live-monitoring-header,
+  .live-ecg-card {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .live-ecg-card {
+    padding: 12px !important;
+  }
+
+  .live-ecg-status {
+    gap: 6px !important;
+  }
+}
+
+/* Health Analytics responsive layout */
+.analytics-header {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.analytics-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+.analytics-header-controls {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.analytics-trend-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.analytics-chart-area {
+  min-width: 0;
+  width: 100%;
+}
+.analytics-trend-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.analytics-trend-card .card-header {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.analytics-trend-card .card-title {
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .analytics-trend-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 600px) {
+  .analytics-header {
+    align-items: flex-start;
+  }
+  .analytics-header .page-title {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .analytics-header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .analytics-header-controls select {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 150px;
+  }
+  .analytics-header-controls > div {
+    flex-wrap: wrap;
+  }
+  .analytics-primary-card,
+  .analytics-trend-card {
+    padding: 14px !important;
+  }
+  .analytics-chart-area {
+    height: 220px !important;
+  }
+}
+@media (max-width: 380px) {
+  .analytics-header-controls {
+    gap: 8px !important;
+  }
+  .analytics-header-controls .btn {
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+  .analytics-chart-area {
+    height: 200px !important;
+  }
+}
+
+/* AI Risk Prediction responsive layout */
+.risk-header {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.risk-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+.risk-header-controls {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.risk-header-controls select {
+  min-width: 0;
+  max-width: 100%;
+}
+.risk-details-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.risk-detail-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.risk-detail-card .card-header {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.risk-detail-card .card-title {
+  min-width: 0;
+}
+.risk-factor-metrics {
+  flex-wrap: wrap;
+  row-gap: 6px !important;
+}
+.risk-overview-card {
+  min-width: 0;
+  overflow: hidden;
+}
+@media (max-width: 900px) {
+  .risk-details-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 600px) {
+  .risk-header {
+    align-items: flex-start;
+  }
+  .risk-header .page-title {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .risk-header .page-subtitle {
+    overflow-wrap: anywhere;
+  }
+  .risk-header-controls {
+    width: 100%;
+  }
+  .risk-header-controls select,
+  .risk-header-controls .btn {
+    width: 100% !important;
+    justify-content: center;
+  }
+  .risk-overview-card,
+  .risk-detail-card {
+    padding: 14px !important;
+  }
+  .risk-overview-card > div {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+  }
+  .risk-overview-card > div:first-child > div:first-child {
+    flex-wrap: wrap;
+    gap: 14px !important;
+  }
+  .risk-overview-card > div:first-child > div:first-child > div:last-child {
+    min-width: 0;
+  }
+  .risk-overview-card > div:first-child > div:first-child > div:last-child > div:nth-child(2) {
+    font-size: 20px !important;
+    overflow-wrap: anywhere;
+  }
+  .risk-factor-metrics {
+    gap: 8px 14px !important;
+  }
+}
+@media (max-width: 380px) {
+  .risk-overview-card,
+  .risk-detail-card {
+    padding: 12px !important;
+  }
+  .risk-overview-card > div:first-child > div:first-child {
+    align-items: flex-start;
+  }
+}
+
+/* Astronaut Profile responsive layout */
+.astronaut-profile-header {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.astronaut-profile-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+.astronaut-crew-switcher {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.astronaut-profile-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.astronaut-profile-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.astronaut-profile-card .card-header {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.astronaut-profile-card .card-title {
+  min-width: 0;
+}
+.astronaut-profile-chart {
+  width: 100%;
+  min-width: 0;
+}
+.astronaut-summary-card {
+  min-width: 0;
+  overflow: hidden;
+}
+@media (max-width: 900px) {
+  .astronaut-profile-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 600px) {
+  .astronaut-profile-header {
+    align-items: flex-start;
+  }
+  .astronaut-profile-header .page-title {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .astronaut-profile-header .page-subtitle {
+    overflow-wrap: anywhere;
+  }
+  .astronaut-crew-switcher {
+    width: 100%;
+  }
+  .astronaut-crew-switcher .btn {
+    flex: 1 1 auto;
+  }
+  .astronaut-summary-card,
+  .astronaut-profile-card {
+    padding: 14px !important;
+  }
+  .astronaut-summary-card > div {
+    gap: 16px !important;
+  }
+  .astronaut-summary-card > div > div:nth-child(2) {
+    min-width: 0 !important;
+    width: 100%;
+  }
+  .astronaut-summary-card > div > div:nth-child(2) > div:first-child {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  .astronaut-summary-card h2 {
+    overflow-wrap: anywhere;
+  }
+  .astronaut-profile-chart {
+    height: 220px !important;
+  }
+  .astronaut-profile-card .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .astronaut-profile-card table {
+    min-width: 560px;
+  }
+}
+@media (max-width: 380px) {
+  .astronaut-summary-card,
+  .astronaut-profile-card {
+    padding: 12px !important;
+  }
+  .astronaut-profile-chart {
+    height: 200px !important;
+  }
+  .astronaut-crew-switcher {
+    gap: 6px !important;
+  }
+  .astronaut-crew-switcher .btn {
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+}
+
+/* Behavioral Health responsive layout */
+.behavioral-header {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.behavioral-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+.behavioral-form,
+.behavioral-chart-card,
+.behavioral-history-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.behavioral-chart-area {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .behavioral-header {
+    align-items: flex-start;
+  }
+  .behavioral-header .page-title {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .behavioral-header .page-subtitle {
+    overflow-wrap: anywhere;
+  }
+  .behavioral-header > button {
+    flex-shrink: 0;
+  }
+  .behavioral-form,
+  .behavioral-chart-card,
+  .behavioral-history-card {
+    padding: 14px !important;
+  }
+  .behavioral-form .card-header,
+  .behavioral-chart-card .card-header,
+  .behavioral-history-card .card-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .behavioral-form .badge,
+  .behavioral-history-card .card-header > span {
+    max-width: 100%;
+  }
+  .behavioral-form select,
+  .behavioral-form textarea {
+    width: 100%;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  .behavioral-form button[type="submit"] {
+    width: 100%;
+    justify-content: center;
+  }
+  .behavioral-chart-area {
+    height: 220px !important;
+  }
+  .behavioral-chart-card .recharts-wrapper {
+    max-width: 100%;
+  }
+  .behavioral-history-card > div:last-child > div {
+    align-items: flex-start !important;
+  }
+}
+@media (max-width: 380px) {
+  .behavioral-form,
+  .behavioral-chart-card,
+  .behavioral-history-card {
+    padding: 12px !important;
+  }
+  .behavioral-chart-area {
+    height: 200px !important;
+  }
+  .behavioral-form .card-title,
+  .behavioral-chart-card .card-title,
+  .behavioral-history-card .card-title {
+    font-size: 12px;
+  }
+}
+
+/* Reports and export responsive layout */
+.reports-header {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.reports-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 300px;
+}
+.reports-header-actions {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.reports-document {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.reports-dossier-grid,
+.reports-wellness-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+.reports-document .table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.reports-document table {
+  min-width: 620px;
+}
+@media (max-width: 900px) {
+  .reports-dossier-grid,
+  .reports-wellness-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 600px) {
+  .reports-header {
+    align-items: flex-start;
+  }
+  .reports-header .page-title {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .reports-header-actions {
+    width: 100%;
+  }
+  .reports-header-actions select,
+  .reports-header-actions .btn {
+    width: 100% !important;
+    justify-content: center;
+  }
+  .reports-document {
+    padding: 16px !important;
+  }
+  .reports-document h2 {
+    font-size: 14px !important;
+    line-height: 1.5;
+  }
+  .reports-document > div:first-child {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .reports-document > div:first-child > div:last-child {
+    text-align: left !important;
+  }
+  .reports-dossier-grid,
+  .reports-wellness-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+  .reports-document > div:last-of-type {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .reports-document > div:last-of-type > div:last-child {
+    text-align: left !important;
+  }
+}
+@media (max-width: 380px) {
+  .reports-document {
+    padding: 12px !important;
+  }
+  .reports-dossier-grid,
+  .reports-wellness-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Mission Timeline responsive layout */
+.timeline-header {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.timeline-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+.timeline-header-controls {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.timeline-header-controls select {
+  min-width: 0;
+  max-width: 100%;
+}
+.timeline-stream {
+  min-width: 0;
+}
+.timeline-event-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.timeline-event-card > div:first-child {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.timeline-modal {
+  width: min(520px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.timeline-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+@media (max-width: 600px) {
+  .timeline-header {
+    align-items: flex-start;
+  }
+  .timeline-header .page-title {
+    font-size: 19px;
+    line-height: 1.35;
+  }
+  .timeline-header-controls {
+    width: 100%;
+  }
+  .timeline-header-controls select,
+  .timeline-header-controls .btn {
+    width: 100% !important;
+    justify-content: center;
+  }
+  .timeline-stream {
+    padding-left: 20px !important;
+    margin-left: 5px !important;
+  }
+  .timeline-event-card {
+    padding: 12px !important;
+  }
+  .timeline-event-card > div:first-child {
+    align-items: flex-start !important;
+  }
+  .timeline-event-card > div:first-child > span {
+    overflow-wrap: anywhere;
+  }
+  .timeline-form-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .timeline-modal {
+    padding: 18px !important;
+  }
+  .timeline-modal input,
+  .timeline-modal select,
+  .timeline-modal textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .timeline-modal form > div:last-child {
+    flex-wrap: wrap;
+  }
+  .timeline-modal form > div:last-child button {
+    flex: 1 1 100px;
+  }
+}
+@media (max-width: 380px) {
+  .timeline-stream {
+    padding-left: 16px !important;
+    margin-left: 3px !important;
+  }
+  .timeline-event-card {
+    padding: 10px !important;
+  }
+}
+
+/* Stable mobile top action alignment */
+.top-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .top-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .top-user-pill {
+    min-width: 0;
+    max-width: 100%;
+    flex: 0 1 auto;
+    overflow: hidden;
+  }
+
+  .top-user-pill > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .top-role-switcher {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 130px;
+  }
+
+  .top-logout-button {
+    flex: 0 0 auto;
+    margin-left: auto;
+    position: relative;
+  }
+}

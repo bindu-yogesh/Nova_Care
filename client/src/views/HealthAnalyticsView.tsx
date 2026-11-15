@@ -117,7 +117,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
 
   return (
     <div className="page-view">
-      <div className="page-header">
+      <div className="page-header analytics-header">
         <div>
           <h1 className="page-title">
             <LucideLineChart color="var(--cyan)" size={24} />
@@ -128,7 +128,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="analytics-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <select
             style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}
             value={activeAstro?.id || ''}
@@ -162,7 +162,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
       )}
 
       {/* Cardiovascular Adaptation */}
-      <div className="glass-card" style={{ marginBottom: '20px' }}>
+      <div className="glass-card analytics-primary-card" style={{ marginBottom: '20px' }}>
         <div className="card-header">
           <div className="card-title">
             <Heart size={16} color="var(--cyan)" />
@@ -173,7 +173,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
           </span>
         </div>
 
-        <div style={{ height: 260 }}>
+        <div className="analytics-chart-area" style={{ height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={vitals}>
               <CartesianGrid stroke="rgba(30, 58, 102, 0.4)" strokeDasharray="3 3" />
@@ -189,10 +189,10 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px' }}>
+      <div className="analytics-trend-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px' }}>
 
         {/* Sleep vs Stress */}
-        <div className="glass-card">
+        <div className="glass-card analytics-trend-card">
           <div className="card-header">
             <div className="card-title">
               <Brain size={16} color="var(--cyan)" />
@@ -203,7 +203,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
             </span>
           </div>
 
-          <div style={{ height: 240 }}>
+          <div className="analytics-chart-area" style={{ height: 240 }}>
             {loading ? (
               <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
                 Loading sleep and stress records...
@@ -238,7 +238,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
         </div>
 
         {/* Respiratory & Core Temperature Stability */}
-        <div className="glass-card">
+        <div className="glass-card analytics-trend-card">
           <div className="card-header">
             <div className="card-title">
               <Activity size={16} color="var(--cyan)" />
@@ -249,7 +249,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
             </span>
           </div>
 
-          <div style={{ height: 240 }}>
+          <div className="analytics-chart-area" style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={vitals}>
                 <CartesianGrid stroke="rgba(30, 58, 102, 0.4)" strokeDasharray="3 3" />
@@ -258,7 +258,7 @@ export const HealthAnalyticsView: React.FC<HealthAnalyticsViewProps> = ({
                 <Tooltip contentStyle={{ backgroundColor: 'var(--bg-panel)', borderColor: 'var(--border-line)', borderRadius: 6, fontSize: 11 }} />
                 <Legend wrapperStyle={{ fontSize: '11px' }} />
                 <Line type="monotone" dataKey="respiratory_rate" stroke="#00F0FF" strokeWidth={2} dot={false} name="Resp Rate (br/min)" />
-                <Line type="monotone" dataKey="body_temperature" stroke="#FFB800" strokeWidth={2} dot={false} name="Core Temp (°C)" />
+                <Line type="monotone" dataKey="body_temperature" stroke="#FFB800" strokeWidth={2} dot={false} name="Core Temp (ï¿½C)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
