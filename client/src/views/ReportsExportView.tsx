@@ -1,14 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   FileSpreadsheet,
   Download,
-  Printer,
-  Shield,
-  FileText,
-  User,
-  Activity,
-  CheckCircle,
-  AlertTriangle
+  Printer
 } from 'lucide-react';
 import { Astronaut } from '../types';
 import { request, API_URL } from '../api';
@@ -27,37 +22,86 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const activeAstro = crew.find(a => a.id === selectedAstronautId) || crew[0];
+  const activeAstro = crew.find(
+    a => a.id === selectedAstronautId
+  ) || crew[0];
 
   useEffect(() => {
-    if (!activeAstro) return;
+    let cancelled = false;
+
+    if (!activeAstro) {
+      setReport(null);
+      setLoading(false);
+      return;
+    }
+
+    setReport(null);
     setLoading(true);
-    request(`/api/reports/weekly?astronautId=${activeAstro.id}`)
-      .then(res => setReport(res))
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
+
+    request(
+      `/api/reports/weekly?astronautId=${encodeURIComponent(activeAstro.id)}`
+    )
+      .then(res => {
+        console.log('[Reports] Weekly API response:', res);
+
+        if (!cancelled) {
+          setReport(res);
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          console.error('Failed to load astronaut report:', err);
+          setReport(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [activeAstro?.id]);
 
   const handleDownloadCsv = () => {
     if (!activeAstro) return;
-    const token = localStorage.getItem('token') || '';
-    const url = `${API_URL}/api/reports/export/csv?astronautId=${activeAstro.id}`;
 
-    // Trigger authenticated or direct download
+    const token = localStorage.getItem('token') || '';
+
+    const url =
+      `${API_URL}/api/reports/export/csv?astronautId=${encodeURIComponent(activeAstro.id)}`;
+
     fetch(url, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     })
-      .then(res => res.blob())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`CSV export failed (${res.status})`);
+        }
+
+        return res.blob();
+      })
       .then(blob => {
         const downloadUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
+
         a.href = downloadUrl;
-        a.download = `ASTROVITAL_Telemetry_${activeAstro.callsign || 'CREW'}_${Date.now()}.csv`;
+        a.download =
+          `ASTROVITAL_Telemetry_${activeAstro.callsign || 'CREW'}_${Date.now()}.csv`;
+
         document.body.appendChild(a);
         a.click();
         a.remove();
+
+        window.URL.revokeObjectURL(downloadUrl);
       })
-      .catch(err => alert('CSV download failed: ' + err.message));
+      .catch(err => {
+        alert('CSV download failed: ' + err.message);
+      });
   };
 
   const handlePrintPdf = () => {
@@ -66,8 +110,24 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
 
   const h = report?.health || {};
   const m = report?.wellness || {};
+  const b = report?.behavioral || {};
   const env = report?.environment || {};
   const alerts = report?.alerts || {};
+
+  // Always return a React-renderable value.
+  const metricValue = (value: unknown): string | number => {
+    if (loading) return 'Loading...';
+
+    if (value === null || value === undefined) {
+      return 'N/A';
+    }
+
+    if (typeof value === 'number' || typeof value === 'string') {
+      return value;
+    }
+
+    return 'N/A';
+  };
 
   return (
     <div className="page-view">
@@ -77,15 +137,24 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
             <FileSpreadsheet color="var(--cyan)" size={24} />
             Clinical Reports & Telemetry Data Export
           </h1>
+
           <p className="page-subtitle">
             Generate printable NASA Flight Surgeon clinical summaries and downloadable raw telemetry CSV datasets
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
           <select
-            style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}
-            value={activeAstro?.id}
+            style={{
+              width: 'auto',
+              padding: '6px 12px',
+              fontSize: '12px'
+            }}
+            value={activeAstro?.id || ''}
             onChange={e => onSelectAstronaut(e.target.value)}
           >
             {crew.map(c => (
@@ -95,17 +164,25 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
             ))}
           </select>
 
-          <button className="btn btn-secondary btn-sm" onClick={handleDownloadCsv}>
-            <Download size={14} /> Download Telemetry CSV
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={handleDownloadCsv}
+            disabled={!activeAstro}
+          >
+            <Download size={14} />
+            Download Telemetry CSV
           </button>
 
-          <button className="btn btn-sm" onClick={handlePrintPdf}>
-            <Printer size={14} /> Export / Print PDF
+          <button
+            className="btn btn-sm"
+            onClick={handlePrintPdf}
+          >
+            <Printer size={14} />
+            Export / Print PDF
           </button>
         </div>
       </div>
 
-      {/* Official Clinical Report Document Card (Printable) */}
       <div
         className="glass-card"
         style={{
@@ -117,50 +194,130 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
         }}
       >
         {/* Document Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--border-line)', paddingBottom: '16px', marginBottom: '20px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '2px solid var(--border-line)',
+          paddingBottom: '16px',
+          marginBottom: '20px'
+        }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div className="nasa-logo-badge" style={{ fontSize: '14px', padding: '4px 10px' }}>NASA</div>
-              <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', letterSpacing: '1px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <div
+                className="nasa-logo-badge"
+                style={{
+                  fontSize: '14px',
+                  padding: '4px 10px'
+                }}
+              >
+                NASA
+              </div>
+
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: 900,
+                color: '#fff',
+                letterSpacing: '1px'
+              }}>
                 EXPEDITION 03 FLIGHT MEDICINE CLINICAL SUMMARY
               </h2>
             </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+
+            <p style={{
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              marginTop: '4px'
+            }}>
               NATIONAL AERONAUTICS AND SPACE ADMINISTRATION · SPACE MEDICINE OPERATIONS DIVISION
             </p>
           </div>
 
-          <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text-secondary)' }}>
-            <div>Doc Ref: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--cyan)' }}>AV-MED-RPT-7D</span></div>
+          <div style={{
+            textAlign: 'right',
+            fontSize: '11px',
+            color: 'var(--text-secondary)'
+          }}>
+            <div>
+              Doc Ref:{' '}
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--cyan)'
+              }}>
+                AV-MED-RPT-7D
+              </span>
+            </div>
+
             <div>Generated: {new Date().toLocaleDateString()}</div>
           </div>
         </div>
 
-        {/* Astronaut Dossier Strip */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '6px', marginBottom: '24px', fontSize: '12px' }}>
+        {/* Astronaut Dossier */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '12px',
+          background: 'rgba(255,255,255,0.03)',
+          padding: '14px',
+          borderRadius: '6px',
+          marginBottom: '24px',
+          fontSize: '12px'
+        }}>
           <div>
-            <div style={{ color: 'var(--text-muted)' }}>ASTRONAUT:</div>
-            <strong style={{ color: '#fff' }}>{activeAstro?.display_name}</strong>
+            <div style={{ color: 'var(--text-muted)' }}>
+              ASTRONAUT:
+            </div>
+            <strong style={{ color: '#fff' }}>
+              {activeAstro?.display_name ?? 'N/A'}
+            </strong>
           </div>
+
           <div>
-            <div style={{ color: 'var(--text-muted)' }}>CALLSIGN:</div>
-            <strong style={{ color: 'var(--cyan)' }}>{activeAstro?.callsign}</strong>
+            <div style={{ color: 'var(--text-muted)' }}>
+              CALLSIGN:
+            </div>
+            <strong style={{ color: 'var(--cyan)' }}>
+              {activeAstro?.callsign ?? 'N/A'}
+            </strong>
           </div>
+
           <div>
-            <div style={{ color: 'var(--text-muted)' }}>POSITION:</div>
-            <strong style={{ color: '#fff' }}>{activeAstro?.role_title}</strong>
+            <div style={{ color: 'var(--text-muted)' }}>
+              POSITION:
+            </div>
+            <strong style={{ color: '#fff' }}>
+              {activeAstro?.role_title ?? 'N/A'}
+            </strong>
           </div>
+
           <div>
-            <div style={{ color: 'var(--text-muted)' }}>FLIGHT DURATION:</div>
-            <strong style={{ color: '#fff' }}>Day 30 in Orbit</strong>
+            <div style={{ color: 'var(--text-muted)' }}>
+              FLIGHT DURATION:
+            </div>
+            <strong style={{ color: '#fff' }}>
+              Day 30 in Orbit
+            </strong>
           </div>
         </div>
 
-        {/* Section 1: Cardiovascular & Vitals Summary */}
+        {/* Section 1: Physiological Telemetry */}
         <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border-line)', paddingBottom: '6px', marginBottom: '10px' }}>
+          <h3 style={{
+            fontSize: '13px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            color: 'var(--cyan)',
+            borderBottom: '1px solid var(--border-line)',
+            paddingBottom: '6px',
+            marginBottom: '10px'
+          }}>
             1. Physiological & Cardiovascular Telemetry (7-Day Average)
           </h3>
+
           <div className="table-wrapper">
             <table>
               <thead>
@@ -171,94 +328,258 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
                   <th>Evaluation</th>
                 </tr>
               </thead>
+
               <tbody>
                 <tr>
                   <td>Resting Heart Rate</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{h.avg_heart_rate ?? '68.4'} bpm</td>
+                  <td style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700
+                  }}>
+                    {metricValue(h.avg_heart_rate)} bpm
+                  </td>
                   <td>55 - 80 bpm</td>
-                  <td><span className="badge badge-green">Within Limits</span></td>
+                  <td>
+                    <span className="badge badge-green">
+                      Within Limits
+                    </span>
+                  </td>
                 </tr>
+
                 <tr>
                   <td>Heart Rate Variability (rMSSD)</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{h.avg_hrv ?? '54.2'} ms</td>
+                  <td style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700
+                  }}>
+                    {metricValue(h.avg_hrv)} ms
+                  </td>
                   <td>&gt; 45 ms</td>
-                  <td><span className="badge badge-green">Nominal Autonomic Tone</span></td>
+                  <td>
+                    <span className="badge badge-green">
+                      Nominal Autonomic Tone
+                    </span>
+                  </td>
                 </tr>
+
                 <tr>
                   <td>Arterial Oxygenation (SpO₂)</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{h.avg_spo2 ?? '98.3'}%</td>
+                  <td style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700
+                  }}>
+                    {metricValue(h.avg_spo2)}%
+                  </td>
                   <td>96% - 100%</td>
-                  <td><span className="badge badge-green">Optimal O2 Delivery</span></td>
+                  <td>
+                    <span className="badge badge-green">
+                      Optimal O2 Delivery
+                    </span>
+                  </td>
                 </tr>
+
                 <tr>
                   <td>Ventilation Rate</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{h.avg_respiratory_rate ?? '14.2'} br/min</td>
+                  <td style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700
+                  }}>
+                    {metricValue(h.avg_respiratory_rate)} br/min
+                  </td>
                   <td>12 - 18 br/min</td>
-                  <td><span className="badge badge-green">Nominal</span></td>
+                  <td>
+                    <span className="badge badge-green">
+                      Nominal
+                    </span>
+                  </td>
                 </tr>
+
                 <tr>
                   <td>Sleep Duration</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{h.avg_sleep_hours ?? '6.9'} h</td>
+                  <td style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 700
+                  }}>
+                    {metricValue(h.avg_sleep_hours)} h
+                  </td>
                   <td>&ge; 7.0 h</td>
-                  <td><span className="badge badge-yellow">Mild Sleep Disruption</span></td>
+                  <td>
+                    <span className="badge badge-yellow">
+                      Mild Sleep Disruption
+                    </span>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Section 2: Neurobehavioral & Psychological Wellness */}
+        {/* Section 2: Psychological Wellness */}
         <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border-line)', paddingBottom: '6px', marginBottom: '10px' }}>
-            2. Neurobehavioral & Psychophysiological Adaptation
+          <h3 style={{
+            fontSize: '13px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            color: 'var(--cyan)',
+            borderBottom: '1px solid var(--border-line)',
+            paddingBottom: '6px',
+            marginBottom: '10px'
+          }}>
+            2. Psychological Wellness
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', fontSize: '12px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
-              <div style={{ color: 'var(--text-muted)' }}>Average Mood</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>{m.avg_mood ?? '7.8'} / 10</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
-              <div style={{ color: 'var(--text-muted)' }}>Stress Level</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--health-yellow)' }}>{m.avg_stress ?? '4.2'} / 10</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
-              <div style={{ color: 'var(--text-muted)' }}>Fatigue Score</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>{m.avg_fatigue ?? '3.8'} / 10</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
-              <div style={{ color: 'var(--text-muted)' }}>Sleep Quality</div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>{m.avg_sleep_quality ?? '6.5'} / 10</div>
-            </div>
-          </div>
         </div>
 
-        {/* Section 3: Environmental Dosimetry & Incidents */}
+
+<div style={{ marginBottom: '24px' }}>
+  <h3 style={{
+    fontSize: '13px',
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    color: 'var(--cyan)',
+    borderBottom: '1px solid var(--border-line)',
+    paddingBottom: '6px',
+    marginBottom: '10px'
+  }}>
+    2. Neurobehavioral & Psychophysiological Adaptation
+  </h3>
+
+  <div style={{
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '10px',
+    fontSize: '12px'
+  }}>
+    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
+      <div style={{ color: 'var(--text-muted)' }}>Average Mood</div>
+      <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>
+        {metricValue(b.avg_mood)} / 5
+      </div>
+    </div>
+
+    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
+      <div style={{ color: 'var(--text-muted)' }}>Stress Level</div>
+      <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--health-yellow)' }}>
+        {metricValue(b.avg_stress)} / 10
+      </div>
+    </div>
+
+    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
+      <div style={{ color: 'var(--text-muted)' }}>Fatigue Score</div>
+      <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>
+        {metricValue(m.avg_fatigue)} / 10
+      </div>
+    </div>
+
+    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '4px' }}>
+      <div style={{ color: 'var(--text-muted)' }}>Sleep Quality</div>
+      <div style={{ fontSize: '18px', fontWeight: 700, color: '#fff' }}>
+        {metricValue(m.avg_sleep_quality)} / 10
+      </div>
+    </div>
+  </div>
+
+  <div style={{
+    marginTop: '10px',
+    fontSize: '11px',
+    color: 'var(--text-muted)'
+  }}>
+    Behavioral check-ins: {metricValue(b.checkin_count)}
+    {' · '}
+    Latest check-in: {b.latest_checkin
+      ? new Date(b.latest_checkin).toLocaleString()
+      : 'No recent check-in'}
+  </div>
+</div>
+        {/* Section 3: Environmental Exposure & Incidents */}
         <div style={{ marginBottom: '28px' }}>
-          <h3 style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border-line)', paddingBottom: '6px', marginBottom: '10px' }}>
+          <h3 style={{
+            fontSize: '13px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            color: 'var(--cyan)',
+            borderBottom: '1px solid var(--border-line)',
+            paddingBottom: '6px',
+            marginBottom: '10px'
+          }}>
             3. Environmental Exposure & Anomaly Records
           </h3>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-            <div>• Cumulative Ionizing Radiation Dose: <strong style={{ color: '#fff' }}>{env.cumulative_dose_msv ?? '18.4'} mSv</strong> (Peak: {env.max_radiation_usv ?? '28.2'} µSv/h · within Career LEO/Lunar Radiation Limits).</div>
-            <div>• Atmospheric CO2 7-day average: <strong style={{ color: '#fff' }}>{env.avg_co2_ppm ?? '2620'} ppm</strong> (Nominal scrubber operation).</div>
-            <div>• Total Telemetry Incidents (7 Days): <strong style={{ color: '#fff' }}>{alerts.total_alerts ?? 0} logged alerts</strong> ({alerts.high_severity_alerts ?? 0} high-severity).</div>
+
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--text-secondary)',
+            lineHeight: '1.6'
+          }}>
+            <div>
+              • Cumulative Ionizing Radiation Dose:{' '}
+              <strong style={{ color: '#fff' }}>
+                {env.cumulative_dose_msv ?? '18.4'} mSv
+              </strong>
+              {' '}(Peak: {env.max_radiation_usv ?? '28.2'} µSv/h · within Career LEO/Lunar Radiation Limits).
+            </div>
+
+            <div>
+              • Atmospheric CO2 7-day average:{' '}
+              <strong style={{ color: '#fff' }}>
+                {env.avg_co2_ppm ?? '2620'} ppm
+              </strong>
+              {' '}(Nominal scrubber operation).
+            </div>
+
+            <div>
+              • Total Telemetry Incidents (7 Days):{' '}
+              <strong style={{ color: '#fff' }}>
+                {alerts.total_alerts ?? 0} logged alerts
+              </strong>
+              {' '}({alerts.high_severity_alerts ?? 0} high-severity).
+            </div>
           </div>
         </div>
 
-        {/* Flight Surgeon Sign-Off Section */}
-        <div style={{ borderTop: '2px solid var(--border-line)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '11px' }}>
+        {/* Flight Surgeon Sign-Off */}
+        <div style={{
+          borderTop: '2px solid var(--border-line)',
+          paddingTop: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          fontSize: '11px'
+        }}>
           <div>
-            <div style={{ fontWeight: 700, color: '#fff' }}>CHIEF FLIGHT SURGEON:</div>
-            <div style={{ color: 'var(--text-secondary)' }}>Dr. Robert Hayes, MD (NASA Flight Medicine)</div>
-            <div style={{ color: 'var(--text-muted)' }}>Clinical Approval: SIGNED ELECTRONICALLY via PKI-2026</div>
+            <div style={{
+              fontWeight: 700,
+              color: '#fff'
+            }}>
+              CHIEF FLIGHT SURGEON:
+            </div>
+
+            <div style={{ color: 'var(--text-secondary)' }}>
+              Dr. Robert Hayes, MD (NASA Flight Medicine)
+            </div>
+
+            <div style={{ color: 'var(--text-muted)' }}>
+              Clinical Approval: SIGNED ELECTRONICALLY via PKI-2026
+            </div>
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <div style={{ borderBottom: '1px solid #94a9c9', width: '180px', marginBottom: '4px' }} />
-            <div style={{ color: 'var(--text-muted)' }}>Medical Review Stamp & Date</div>
+            <div style={{
+              borderBottom: '1px solid #94a9c9',
+              width: '180px',
+              marginBottom: '4px'
+            }} />
+
+            <div style={{ color: 'var(--text-muted)' }}>
+              Medical Review Stamp & Date
+            </div>
           </div>
         </div>
 
-        <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '20px', textAlign: 'center' }}>
+        <p style={{
+          fontSize: '10px',
+          color: 'var(--text-muted)',
+          marginTop: '20px',
+          textAlign: 'center'
+        }}>
           CONFIDENTIAL · NASA AEROSPACE MEDICINE & TELEMETRY SURVEILLANCE · DECISION SUPPORT ARCHITECTURE
         </p>
       </div>
