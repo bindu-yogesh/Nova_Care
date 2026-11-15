@@ -1090,14 +1090,36 @@ app.get('/api/reports/weekly', auth(), wrap(async (req, res) => {
     WHERE astronaut_id=$1 AND recorded_at > now() - interval '7 days'
   `, [aid]);
 
+
+  // Legacy health records: fatigue and sleep quality.
   const [m] = await q(`
-    SELECT ROUND(AVG(mood)::numeric, 1) as avg_mood,
-           ROUND(AVG(stress)::numeric, 1) as avg_stress,
-           ROUND(AVG(fatigue)::numeric, 1) as avg_fatigue,
-           ROUND(AVG(sleep_quality)::numeric, 1) as avg_sleep_quality
+    SELECT ROUND(AVG(fatigue)::numeric, 1) AS avg_fatigue,
+           ROUND(AVG(sleep_quality)::numeric, 1) AS avg_sleep_quality
     FROM mental_health_records
-    WHERE astronaut_id=$1 AND recorded_at > now() - interval '7 days'
+    WHERE astronaut_id = $1
+      AND recorded_at > NOW() - INTERVAL '7 days'
   `, [aid]);
+
+  // Behavioral Health: mood, stress and check-in history.
+  const [b] = await q(`
+    SELECT
+      COUNT(*)::int AS checkin_count,
+      ROUND(AVG(
+        CASE mood
+          WHEN 'Very Good' THEN 5
+          WHEN 'Good' THEN 4
+          WHEN 'Neutral' THEN 3
+          WHEN 'Low' THEN 2
+          WHEN 'Very Low' THEN 1
+        END
+      ), 1) AS avg_mood,
+      ROUND(AVG(stress_level)::numeric, 1) AS avg_stress,
+      MAX(created_at) AS latest_checkin
+    FROM behavioral_health_checkins
+    WHERE astronaut_id = $1
+      AND created_at > NOW() - INTERVAL '7 days'
+  `, [aid]);
+
 
   const [e] = await q(`
     SELECT ROUND(MAX(radiation_usv_h)::numeric, 1) as max_radiation_usv,
@@ -1122,6 +1144,7 @@ app.get('/api/reports/weekly', auth(), wrap(async (req, res) => {
     period: 'Past 7 Days (Telemetry Rolling Window)',
     health: h,
     wellness: m,
+    behavioral: b,
     environment: e,
     alerts: alertsSummary,
     disclaimer: 'Official NASA Mission Health Telemetry Summary. Decision support analysis only; not an independent clinical diagnostic device.'
