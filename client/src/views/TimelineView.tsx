@@ -76,7 +76,7 @@ export const TimelineView: React.FC = () => {
 
   return (
     <div className="page-view">
-      <div className="page-header">
+      <div className="page-header timeline-header">
         <div>
           <h1 className="page-title">
             <Clock color="var(--cyan)" size={24} />
@@ -87,7 +87,7 @@ export const TimelineView: React.FC = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="timeline-header-controls" style={{ display: 'flex', gap: '10px' }}>
           <select
             style={{ width: 'auto' }}
             value={filterType}
@@ -108,7 +108,7 @@ export const TimelineView: React.FC = () => {
       </div>
 
       {/* Timeline Stream */}
-      <div style={{ position: 'relative', paddingLeft: '28px', borderLeft: '2px solid var(--border-line)', marginLeft: '12px' }}>
+      <div className="timeline-stream" style={{ position: 'relative', paddingLeft: '28px', borderLeft: '2px solid var(--border-line)', marginLeft: '12px' }}>
         {filteredEvents.map((ev, index) => {
           const sevColor =
             ev.severity === 'critical' ? 'var(--health-red)' :
@@ -139,7 +139,7 @@ export const TimelineView: React.FC = () => {
                 }}
               />
 
-              <div className="glass-card" style={{ padding: '16px' }}>
+              <div className="glass-card timeline-event-card" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {getEventIcon(ev.event_type)}
@@ -171,7 +171,7 @@ export const TimelineView: React.FC = () => {
       {/* Add Event Modal */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content timeline-modal" onClick={e => e.stopPropagation()}>
             <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
               Log Mission Timeline Event
             </h2>
@@ -192,7 +192,7 @@ export const TimelineView: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="timeline-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label>Event Category</label>
                     <select

@@ -25,18 +25,20 @@ interface SidebarProps {
   onSelectTab: (tab: string) => void;
   openAlertsCount: number;
   userRole: string;
+  isMobileOpen: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onSelectTab,
   openAlertsCount,
-  userRole
+  userRole,
+  isMobileOpen
 }) => {
   const isMedical = userRole === 'medical';
 
   return (
-    <aside className="sidebar no-print">
+    <aside className={`sidebar no-print ${isMobileOpen ? 'mobile-open' : ''}`}>
       <div className="sidebar-header">
         <div className="nasa-logo-badge">NASA</div>
         <div className="logo-text">ASTROVITAL</div>
