@@ -59,6 +59,7 @@ export default function App() {
   const [latestRiskAssessment, setLatestRiskAssessment] = useState<RiskAssessment | null>(null);
 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(0);
 
@@ -77,6 +78,7 @@ export default function App() {
 
   const selectTab = useCallback((tab: string) => {
     setCurrentTab(tab);
+    setIsMobileNavOpen(false);
     window.location.hash = `#/${tab}`;
   }, []);
 
@@ -268,12 +270,21 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {isMobileNavOpen && (
+        <button
+          className="sidebar-backdrop"
+          type="button"
+          aria-label="Close navigation menu"
+          onClick={() => setIsMobileNavOpen(false)}
+        />
+      )}
       {/* Flight Operations Navigation Sidebar */}
       <Sidebar
         currentTab={currentTab}
         onSelectTab={selectTab}
         openAlertsCount={openAlerts.filter(a => a.status === 'open').length}
         userRole={userRole}
+        isMobileOpen={isMobileNavOpen}
       />
 
       <div className="main-wrapper">
@@ -284,6 +295,7 @@ export default function App() {
           missionDay={missionDay}
           openAlerts={openAlerts.filter(a => a.status === 'open')}
           onOpenNotifications={() => setIsNotificationOpen(true)}
+          onOpenMenu={() => setIsMobileNavOpen(true)}
           onQuickSwitchUser={handleQuickSwitchUser}
           onLogout={handleLogout}
         />

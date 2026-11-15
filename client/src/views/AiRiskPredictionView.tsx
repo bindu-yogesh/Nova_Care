@@ -64,7 +64,7 @@ export const AiRiskPredictionView: React.FC<AiRiskPredictionViewProps> = ({
 
   return (
     <div className="page-view">
-      <div className="page-header">
+      <div className="page-header risk-header">
         <div>
           <h1 className="page-title">
             <BrainCircuit color="var(--cyan)" size={24} />
@@ -75,7 +75,7 @@ export const AiRiskPredictionView: React.FC<AiRiskPredictionViewProps> = ({
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="risk-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <select
             style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }}
             value={activeAstro?.id}
@@ -100,7 +100,7 @@ export const AiRiskPredictionView: React.FC<AiRiskPredictionViewProps> = ({
       </div>
 
       {/* Primary Score Banner & Overview */}
-      <div className="glass-card" style={{ marginBottom: '20px' }}>
+      <div className="glass-card risk-overview-card" style={{ marginBottom: '20px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'center' }}>
 
           {/* Gauge Block */}
@@ -158,10 +158,10 @@ export const AiRiskPredictionView: React.FC<AiRiskPredictionViewProps> = ({
       </div>
 
       {/* Grid: Contributing Factors Breakdown + Recommended Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+      <div className="risk-details-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px', marginBottom: '20px' }}>
 
         {/* Contributing Factors */}
-        <div className="glass-card">
+        <div className="glass-card risk-detail-card">
           <div className="card-header">
             <div className="card-title">
               <TrendingDown size={16} color="var(--cyan)" />
@@ -197,7 +197,7 @@ export const AiRiskPredictionView: React.FC<AiRiskPredictionViewProps> = ({
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                    <div className="risk-factor-metrics" style={{ display: 'flex', gap: '16px', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>
                       <span>Observed: <strong style={{ color: '#fff' }}>{f.observed} {f.unit}</strong></span>
                       <span>Baseline: <strong style={{ color: 'var(--cyan)' }}>{f.baseline} {f.unit}</strong></span>
                       {f.zScore != null && <span>Z-Score: <strong style={{ color: fColor }}>{f.zScore > 0 ? `+${f.zScore}` : f.zScore}</strong></span>}
@@ -219,7 +219,7 @@ export const AiRiskPredictionView: React.FC<AiRiskPredictionViewProps> = ({
         </div>
 
         {/* Recommended Medical Review Actions */}
-        <div className="glass-card">
+        <div className="glass-card risk-detail-card">
           <div className="card-header">
             <div className="card-title">
               <CheckCircle size={16} color="var(--cyan)" />

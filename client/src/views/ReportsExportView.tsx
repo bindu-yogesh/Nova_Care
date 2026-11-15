@@ -131,7 +131,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
 
   return (
     <div className="page-view">
-      <div className="page-header no-print">
+      <div className="page-header no-print reports-header">
         <div>
           <h1 className="page-title">
             <FileSpreadsheet color="var(--cyan)" size={24} />
@@ -143,11 +143,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
           </p>
         </div>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
+        <div className="reports-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <select
             style={{
               width: 'auto',
@@ -184,7 +180,7 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
       </div>
 
       <div
-        className="glass-card"
+        className="glass-card reports-document"
         style={{
           border: '1px solid var(--border-line)',
           padding: '30px',
@@ -203,27 +199,9 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
           marginBottom: '20px'
         }}>
           <div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <div
-                className="nasa-logo-badge"
-                style={{
-                  fontSize: '14px',
-                  padding: '4px 10px'
-                }}
-              >
-                NASA
-              </div>
-
-              <h2 style={{
-                fontSize: '18px',
-                fontWeight: 900,
-                color: '#fff',
-                letterSpacing: '1px'
-              }}>
+            <div className="reports-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="nasa-logo-badge" style={{ fontSize: '14px', padding: '4px 10px' }}>NASA</div>
+              <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', letterSpacing: '1px' }}>
                 EXPEDITION 03 FLIGHT MEDICINE CLINICAL SUMMARY
               </h2>
             </div>
@@ -256,17 +234,8 @@ export const ReportsExportView: React.FC<ReportsExportViewProps> = ({
           </div>
         </div>
 
-        {/* Astronaut Dossier */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '12px',
-          background: 'rgba(255,255,255,0.03)',
-          padding: '14px',
-          borderRadius: '6px',
-          marginBottom: '24px',
-          fontSize: '12px'
-        }}>
+        {/* Astronaut Dossier Strip */}
+        <div className="reports-dossier-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '6px', marginBottom: '24px', fontSize: '12px' }}>
           <div>
             <div style={{ color: 'var(--text-muted)' }}>
               ASTRONAUT:

@@ -53,7 +53,7 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
   return (
     <div className="page-view">
       {/* Top Header & Crew Switcher */}
-      <div className="page-header">
+      <div className="page-header astronaut-profile-header">
         <div>
           <h1 className="page-title">
             <User color="var(--cyan)" size={24} />
@@ -65,7 +65,7 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
         </div>
 
         {/* Crew Selector */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="astronaut-crew-switcher" style={{ display: 'flex', gap: '8px' }}>
           {crew.map(c => (
             <button
               key={c.id}
@@ -79,7 +79,7 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
       </div>
 
       {/* Main Dossier Summary Card */}
-      <div className="glass-card" style={{ marginBottom: '20px' }}>
+      <div className="glass-card astronaut-summary-card" style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center' }}>
           {/* Avatar Icon */}
           <div
@@ -139,10 +139,10 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
       </div>
 
       {/* Grid: 30-Day Physiological Trends Chart + Baseline Table */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+      <div className="astronaut-profile-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px', marginBottom: '20px' }}>
 
         {/* 30-Day History Chart */}
-        <div className="glass-card">
+        <div className="glass-card astronaut-profile-card">
           <div className="card-header">
             <div className="card-title">
               <Activity size={16} color="var(--cyan)" />
@@ -153,7 +153,7 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
             </span>
           </div>
 
-          <div style={{ height: 260 }}>
+          <div className="astronaut-profile-chart" style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={history}>
                 <CartesianGrid stroke="rgba(30, 58, 102, 0.4)" strokeDasharray="3 3" />
@@ -175,7 +175,7 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
         </div>
 
         {/* Calibrated Personal Baselines Table */}
-        <div className="glass-card">
+        <div className="glass-card astronaut-profile-card">
           <div className="card-header">
             <div className="card-title">
               <Shield size={16} color="var(--cyan)" />
@@ -228,7 +228,7 @@ export const AstronautProfileView: React.FC<AstronautProfileViewProps> = ({
       </div>
 
       {/* Countermeasures & Exercise Records */}
-      <div className="glass-card">
+      <div className="glass-card astronaut-profile-card">
         <div className="card-header">
           <div className="card-title">
             <Dumbbell size={16} color="var(--cyan)" />

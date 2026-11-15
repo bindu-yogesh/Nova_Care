@@ -54,7 +54,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({
 
   return (
     <div className="page-view">
-      <div className="page-header">
+      <div className="page-header live-monitoring-header">
         <div>
           <h1 className="page-title">
             <Activity color="var(--cyan)" size={24} />
@@ -140,13 +140,13 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({
       </div>
 
       {/* Live ECG Wave Monitor Banner */}
-      <div className="glass-card" style={{ marginBottom: '20px' }}>
+      <div className="glass-card live-ecg-card" style={{ marginBottom: '20px' }}>
         <div className="card-header">
           <div className="card-title">
             <Heart size={16} color="var(--cyan)" />
             Continuous Cardiac Telemetry · Lead II Rhythm Strip
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="live-ecg-status" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="live-indicator">
               <span className="live-dot" /> STREAMING 100Hz
             </span>
@@ -158,7 +158,7 @@ export const LiveMonitoringView: React.FC<LiveMonitoringViewProps> = ({
 
         <LiveEcgWave heartRate={hr} height={95} />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
+        <div className="live-ecg-metadata" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
           <span>Bandwidth: 0.05 - 150 Hz · Cal: 10mm/mV · Speed: 25mm/s</span>
           <span>Subject: {selectedAstro?.display_name} ({selectedAstro?.callsign}) · Seat: {selectedAstro?.assigned_seat || 'Flight Deck'}</span>
         </div>

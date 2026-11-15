@@ -221,7 +221,7 @@ export const BehavioralHealthView: React.FC = () => {
 
   return (
     <div className="page-view">
-      <div className="page-header">
+      <div className="page-header behavioral-header">
         <div>
           <h1 className="page-title">
             <Brain color="var(--cyan)" size={24} />
@@ -337,7 +337,7 @@ export const BehavioralHealthView: React.FC = () => {
 
       {/* Mood check-in form */}
       <form
-        className="glass-card"
+        className="glass-card behavioral-form"
         onSubmit={handleSubmit}
         style={{ padding: 22, marginBottom: 20 }}
       >
@@ -477,7 +477,7 @@ export const BehavioralHealthView: React.FC = () => {
       </form>
 
       {/* Trends */}
-      <div className="glass-card" style={{ padding: 22, marginBottom: 20 }}>
+      <div className="glass-card behavioral-chart-card" style={{ padding: 22, marginBottom: 20 }}>
         <div
           className="card-header"
           style={{ flexWrap: 'wrap', gap: 12 }}
@@ -511,7 +511,7 @@ export const BehavioralHealthView: React.FC = () => {
           self-reported moods.
         </p>
 
-        <div style={{ height: 260 }}>
+        <div className="behavioral-chart-area" style={{ height: 260 }}>
           {loading ? (
             <div style={{
               height: '100%',
@@ -582,7 +582,7 @@ export const BehavioralHealthView: React.FC = () => {
       </div>
 
       {/* Wellness alerts */}
-      <div className="glass-card" style={{ padding: 22, marginBottom: 20 }}>
+      <div className="glass-card behavioral-chart-card" style={{ padding: 22, marginBottom: 20 }}>
         <div className="card-header">
           <div className="card-title">
             <AlertCircle size={17} color="var(--cyan)" />
@@ -639,7 +639,7 @@ export const BehavioralHealthView: React.FC = () => {
       </div>
 
       {/* Recent history */}
-      <div className="glass-card" style={{ padding: 22 }}>
+      <div className="glass-card behavioral-history-card" style={{ padding: 22 }}>
         <div className="card-header">
           <div className="card-title">
             <CalendarDays size={17} color="var(--cyan)" />

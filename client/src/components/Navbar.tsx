@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Volume2, VolumeX, LogOut, UserCheck, Clock, Satellite } from 'lucide-react';
+import { Bell, Volume2, VolumeX, LogOut, UserCheck, Clock, Satellite, Menu } from 'lucide-react';
 import { HealthAlert } from '../types';
 
 interface NavbarProps {
@@ -8,6 +8,7 @@ interface NavbarProps {
   missionDay: number;
   openAlerts: HealthAlert[];
   onOpenNotifications: () => void;
+  onOpenMenu: () => void;
   onQuickSwitchUser: (email: string) => void;
   onLogout: () => void;
 }
@@ -18,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   missionDay,
   openAlerts,
   onOpenNotifications,
+  onOpenMenu,
   onQuickSwitchUser,
   onLogout
 }) => {
@@ -115,6 +117,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="flight-bar no-print">
+      <button
+        className="mobile-menu-toggle"
+        type="button"
+        aria-label="Open navigation menu"
+        onClick={onOpenMenu}
+      >
+        <Menu size={20} />
+      </button>
       <div className="flight-telemetry-strip">
         <div className="telemetry-item">
           <span className="telemetry-label">Mission Elapsed Time</span>
@@ -189,7 +199,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* User Identity Pill */}
-        <div className="user-profile-pill">
+        <div className="user-profile-pill top-user-pill">
           <UserCheck size={14} color="var(--cyan)" />
           <span style={{ fontWeight: 600 }}>{userName}</span>
           <span className="role-tag">
@@ -199,6 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Quick Demo Switcher */}
         <select
+          className="top-role-switcher"
           style={{ width: 'auto', padding: '4px 8px', fontSize: '11px', background: 'var(--bg-panel)', borderColor: 'var(--border-line)' }}
           onChange={e => {
             if (e.target.value) onQuickSwitchUser(e.target.value);
@@ -214,7 +225,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Logout */}
         <button
-          className="btn btn-secondary btn-sm"
+          className="btn btn-secondary btn-sm top-logout-button"
           onClick={onLogout}
           title="Sign Out"
           style={{ padding: '6px 8px' }}
